@@ -5,7 +5,6 @@ Employee Tracker is an application that can manage a company's employees. This a
 
 - Link to video demonstration: https://drive.google.com/file/d/17cs4IFp_tOkskIU4JI7V2DbDJJgMp-Pj/view
 
-![Screen Shot 2020-11-29 at 8 48 22 PM](https://user-images.githubusercontent.com/67250231/100560681-8e55ed80-3284-11eb-8286-30fe6eb68df4.png)
 
 ## Table of Contents
 - Installation(#Installation)
