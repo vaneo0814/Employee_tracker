@@ -1,7 +1,5 @@
 const mysql = require("mysql");
 const inquirer = require("inquirer");
-const consoleTable = require("console.table");
-const RawListPrompt = require("inquirer/lib/prompts/rawlist");
 
 
 // create the connection information for the sql database
@@ -222,77 +220,79 @@ function addEmployee() {
     })
 }
 
-async function updateEmployee() {
-    //first we have to grab which employee they want to update
-    //then we have to update the role 
-    const employees = await viewEmployees();
-    console.log(employees);
-    const employeeChoices = employees.map(({id, first_name, last_name}) => ({
-        name: `${first_name} ${last_name}`,
-        value: id
-    })
-    )
-    const { employeeID } = await inquirer.prompt([
-                {
-                    name: "employeeID",
-                    type: "list",
-                    message: "Which employee would you like to update?",
-                    choices: employeeChoices
-                }
-            ])
-    let roles = await viewRoles();
-    let roleChoices = roles.map(({
-        id,
-        title
-    }) => ({
-        name: title,
-        value: id
-    }
-        ));
-    const { roleID } = await
+function updateEmployee() {
+    //grab the employee that the user wants to update
+    connection.query("SELECT * FROM employee", function (err, res) {
+        if (err) throw err;
         inquirer
             .prompt([
                 {
-                    name: "roleID",
-                    type: "list",
-                    message: "Which role do you want to assign to this employee",
-                    choices: roleChoices
+                    name: "employee",
+                    type: "rawList",
+                    message: "Which employee would you like to update? Please enter their last name.",
+                    choices: function () {
+                        chosenEmployee = [];
+                        res.forEach(res => {
+                            chosenEmployee.push(res.last_name);
+                        })
+                        return chosenEmployee;
+                        ;
+                    }
                 }
-
             ])
+            //now to get the id that the chosen employee from department...since role and department are interconnected.
+            .then(function (answer) {
+                //lets set a const with the chosen employee
+                const changeEmployee = answer.employee;
+                console.log("Changed Employee: " + changeEmployee);
+                //get role db
+                connection.query("SELECT * FROM role", function (err, res) { if(err) throw err;
+                    inquirer
+                        .prompt([
+                            {
+                                name: "newRole",
+                                type: "rawList",
+                                message: "What is this employees new role?",
+                                choices: function () {
+                                    newRole = [];
+                                    res.forEach(res => {
+                                        newRole.push(res.title);
+                                        //push new role into the role title db
+                                    })
+                                    return newRole;
 
+                                }
+                            }
+                        ])//push into query of Role
+                        .then(function(update) {
+                            //create another const
+                            const updatedRole = update.newRole;
+                            console.log("Updated Role: " + updatedRole);
 
-            // connection.query("SELECT * FROM employee", function (err, res) {
-            //     if (err) throw err;
+                            connection.query('SELECT * FROM role WHERE title = ?', [updatedRole], function (err, res) {
+                                if (err) throw (err);
 
-            //now we have to get the role that the employee had and update the role db
-            // .then(function (answer) {
-            //     //grabbing the role now..
-            //     connection.query("SELECT * FROM role", function (err, res) {
-            //         inquirer
-            //             .prompt([
-            //                 {
-            //                     type: "rawList",
-            //                     name: "updateRole",
-            //                     message: "What is this employees new role?",
-            //                     choices: function () {
-            //                         newRole = [];
-            //                         res.forEach(res => {
-            //                             newRole.push(res.title);
-            //                         })
-            //                         return newRole;
-            //                     }
-            //                 }
-            //             ]).then(function (answer) {
-            //                 console.log(answer);
-            //             })
-            //     })
+                                //grab role id
+                                let roleID = res[0].id;
+                                console.log("ROLE id : " + roleID);
 
-            // })
+                                let params = [roleID, changeEmployee]
+                                console.log(params);
+                                 connection.query("UPDATE employee SET role_id = ? WHERE last_name = ?", params,
+                                     function(err, res) {
+                                         if (err) throw (err);
+                                     console.log(`You have updated ${changeEmployee}'s role to ${updatedRole}.`)
+                                    })
+                                viewEmployees();
+
+                            })
+                        })
+                })
+
+            })
+    })
+
 }
-
-
-
 
 
 //function to view all departments
@@ -301,9 +301,7 @@ function viewDepartments() {
     connection.query(query, function (err, res) {
         if (err) throw err;
         console.table(`DEPARTMENTS : `)
-        res.forEach(department => {
-            console.table(`ID: ${department.id} | Name: ${department.name}`)
-        })
+        console.table(res);
     });
     start();
 }
@@ -313,10 +311,8 @@ function viewRoles() {
     let query = "SELECT * FROM role";
     connection.query(query, function (err, res) {
         if (err) throw err;
-        console.table(`Roles : `)
-        res.forEach(role => {
-            console.table(`ID: ${role.id} | Title: ${role.title} | Salary: ${role.salary} | Department ID: ${role.department_id}`);
-        })
+        console.table(`ROLES : `)
+            console.table(res);
     });
     start();
 }
@@ -326,11 +322,10 @@ function viewEmployees() {
     let query = "SELECT * FROM employee";
     connection.query(query, function (err, res) {
         if (err) throw err;
-        //console.table(`Employees : `)
-        res.forEach(employee => {
-            console.table(`ID: ${employee.id} | Name: ${employee.first_name} ${employee.last_name} | Role_ID: ${employee.role_id}`);
+        console.table(`Employees : `);
+       console.table(res);
         })
-    });
+
     start();
 }
 
