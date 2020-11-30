@@ -42,7 +42,7 @@ function start() {
                 "Exit"]
         })
         .then(function (answer) {
-            // based on their answer, either call the bid or the post functions
+            // based on their answer, call the specific functions
             if (answer.select === "Add department") {
                 //create a function addDepartment
                 addDepartment();
@@ -142,6 +142,7 @@ function addRole() {
                     }
                     )
                     let id = filteredDept[0].id;
+                    console.log("Filtered id: " + id);
                     connection.query("INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)",
                         //remember that ? are like placeholders
                         [
