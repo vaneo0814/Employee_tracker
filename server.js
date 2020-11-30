@@ -300,7 +300,8 @@ function viewDepartments() {
     let query = "SELECT * FROM department";
     connection.query(query, function (err, res) {
         if (err) throw err;
-        console.table(`DEPARTMENTS : `)
+        console.table(` `);
+        console.table(`------ DEPARTMENTS ------`)
         console.table(res);
     });
     start();
@@ -311,8 +312,9 @@ function viewRoles() {
     let query = "SELECT * FROM role";
     connection.query(query, function (err, res) {
         if (err) throw err;
-        console.table(`ROLES : `)
-            console.table(res);
+        console.table(` `);
+        console.table(`------ ROLES ------`);
+        console.table(res);
     });
     start();
 }
@@ -322,8 +324,9 @@ function viewEmployees() {
     let query = "SELECT * FROM employee";
     connection.query(query, function (err, res) {
         if (err) throw err;
-        console.table(`Employees : `);
-       console.table(res);
+        console.table(` `);
+        console.table(`------ EMPLOYEES ------`);
+        console.table(res);
         })
 
     start();
